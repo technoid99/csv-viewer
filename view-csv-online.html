@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Viewer</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            cursor: pointer;
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<h1>CSV Viewer</h1>
+<input type="file" id="fileInput" accept=".csv">
+<table id="csvTable"></table>
+
+<script>
+document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const csvData = parseCSV(e.target.result);
+            displayTable(csvData);
+        };
+        reader.readAsText(file);
+    }
+}
+
+function parseCSV(data) {
+    const lines = data.split('\n');
+    return lines.map(line => line.split(','));
+}
+
+function displayTable(data) {
+    const table = document.getElementById('csvTable');
+    table.innerHTML = '';
+
+    // Create table header
+    const header = document.createElement('tr');
+    data[0].forEach((heading, index) => {
+        const th = document.createElement('th');
+        th.textContent = heading;
+        th.onclick = () => sortTable(index);
+        header.appendChild(th);
+    });
+    table.appendChild(header);
+
+    // Create table rows
+    data.slice(1).forEach(row => {
+        const tr = document.createElement('tr');
+        row.forEach(cell => {
+            const td = document.createElement('td');
+            td.textContent = cell;
+            tr.appendChild(td);
+        });
+        table.appendChild(tr);
+    });
+}
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('csvTable');
+    const rows = Array.from(table.rows).slice(1);
+    const isAscending = table.getAttribute('data-sort') === 'asc';
+
+    rows.sort((a, b) => {
+        const cellA = a.cells[columnIndex].textContent;
+        const cellB = b.cells[columnIndex].textContent;
+        return isAscending 
+            ? cellA.localeCompare(cellB) 
+            : cellB.localeCompare(cellA);
+    });
+
+    // Remove existing rows and re-append sorted rows
+    rows.forEach(row => table.appendChild(row));
+    table.setAttribute('data-sort', isAscending ? 'desc' : 'asc');
+}
+</script>
+
+</body>
+</html>
